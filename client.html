@@ -1,0 +1,214 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>ASLPC</title>
+	<link href="http://www.flotcharts.org/flot/examples/examples.css" rel="stylesheet" type="text/css">
+	<!--[if lte IE 8]><script language="javascript" type="text/javascript" src="../../excanvas.min.js"></script><![endif]
+	<script language="javascript" type="text/javascript" src="../../jquery.js"></script>
+	<script language="javascript" type="text/javascript" src="../../jquery.flot.js"></script>
+	<script language="javascript" type="text/javascript" src="../../jquery.flot.time.js"></script>
+	<script language="javascript" type="text/javascript" src="../../jquery.flot.canvas.js"></script>
+	-->
+	<script src="http://www.flotcharts.org/flot/jquery.js"></script>
+	<script src="http://www.flotcharts.org/flot/jquery.flot.js"></script>
+	<script src="http://www.flotcharts.org/flot/jquery.flot.time.js"></script>
+	<script src="http://www.flotcharts.org/flot/jquery.flot.canvas.js"></script>
+
+	<script type="text/javascript">
+				buildGraph = function(conso, tmini) {
+					var dataX = [
+						{ data: conso,  label: "Debit (litre/mn)" },
+						{ data: tmini,  label: "minimum", yaxis: 2 }
+					];
+
+/*					var options = {
+						canvas: true,
+						xaxes: [ { mode: "time" } ],
+						yaxes: [ { min: 0 }, {
+							position: "right",
+							alignTicksWithAxis: 1,
+							tickFormatter: function(value, axis) {
+								return value.toFixed(axis.tickDecimals) + "EUR";
+							}
+						} ],
+						legend: { position: "nw" }
+					}
+*/
+					var options = 
+					{
+						canvas: true,
+						xaxes: [ { mode: "time" } ],
+						yaxes: [ { min: 0, max: 300 }, { min: 0 , max: 300 , position: "right"} ], legend: { position: "nw" }
+					}
+
+
+					$.plot("#placeholder", dataX, options);
+					
+					$("input").change(function () {
+						options.canvas = $(this).is(":checked");
+						$.plot("#placeholder", dataX, options);
+					});
+			}; //fin buildGraph
+	
+		function poll() 
+		{
+	        // alert("entree fonction poll()...");
+			//buildGraph = function(conso, exchangeRates) {  pour 2 courbes...
+		
+			var conso = [];
+			var tmini = [];
+			var memo = 400 ;
+			//var tmini = [];  // valeurs minimales
+
+			//sends a GET request to "/data.json" and will send the contents of the data 
+			//object as query parameters. Once the data arrived, it will call the given 
+			//function with the return value as argument
+			$.getJSON( "/data.json", conso,  function(json) {
+                
+				$.each( json, function( key, val ) {
+
+					conso.push( [ val.x , val.y ] );
+
+					//tmini.push( [ val.x , val.y +20 ] );
+					if (val.y < memo)
+					{
+						tmini.push( [ val.x , val.y ] );
+						memo = val.y;
+					}
+					else
+					{
+						tmini.push([ val.x , memo]);
+					} 	
+
+			    });
+				
+				// j'appelle que maintenant car je suis sur d'avoir les données.
+				//console.log(conso);
+				//buildGraph(conso, exchangeRates);
+				buildGraph(conso, tmini);
+			});	
+
+			// Add the Flot version string to the footer
+			//$("#footer").prepend("Flot " + $.plot.version + " &ndash; ");
+		}
+	</script>
+	<style>
+        h2
+        {
+            color: blue;
+        }
+        p
+        {
+            text-align:center;
+            height:30px;
+        }
+        label
+        {
+            margin-left: 100px;
+        }
+        .btn_reload
+        {
+        	margin-left: 100px;
+            font-size: 32px;
+            width:200px;
+        }
+        .btn_bgg
+        {
+        	margin-left: 100px;
+        	font-size: 40px;
+        	width:60px;
+        }
+        .btn_bgd
+        {
+        	margin-right: 400px;
+        	font-size: 40px;
+        	width:60px;
+        }
+        .btn_bdg
+        {
+        	font-size: 40px;
+        	width:60px;
+        }
+        .btn_bdd
+        {
+        	font-size: 40px;
+        	width:60px;
+        }
+	</style>
+	
+		
+</head>
+
+
+<body>
+	<div id="header">
+		<h2>Debit</h2>
+	</div>
+    <input type="button" value="Reload" id="balerte" class="btn_reload"/></br>
+	<!--label for=fader>Valeur N </label-->
+    <!--input type="number" Id="vN" min="24" max="720" onload="startvalue()" oninput="outputUpdateN(value)"-->
+	<!--script>
+         function startvalue(){
+             vN.value = 24;
+         }
+    </script-->
+<!--label for=fader>Valeur OFFSET </label-->
+	<!--input type="range" Id="vFIN" min="-720" max="0" oninput="outputUpdateFIN(value)"-->
+    <!--input type="number" Id="vOFFSET" min="-720" max="0" oninput="outputUpdateOFFSET(value)"></br-->
+	<!--output for=fader id=LFIN>0</output-->
+	
+	
+	<div id="content">
+		<div class="demo-container">
+			<div id="placeholder" class="demo-placeholder"></div>
+			<!--div id="placeholder" style="width:800px;height:400px"></div-->
+		</div>
+		<input type="button" value="<" id="bgg" class="btn_bgg"/>
+		<input type="button" value=">" id="bgd" class="btn_bgd"/>
+		<input type="button" value="<" id="bdg" class="btn_bdg"/>
+		<input type="button" value=">" id="bdd" class="btn_bdd"/>
+		<p>exemple ...texte.</p>
+		<p><input type="checkbox" checked="checked">validation?</input></p>
+	</div>
+
+	
+
+	<div id="footer">
+		Copyright &copy; 2007 - 2014 IOLA and Ole Laursen
+	</div>
+	
+	<script src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript"> 
+		
+		var socket = io.connect('http://82.233.8.49:6970');
+        //var socket = io.connect('http://localhost:6970');
+
+         // MESSAGE PROVENANT  du SERVEUR
+		//alert('Le serveur a un message pour vous : ' + message);
+		// demande de rafraichissement. Le serveur vient d'avoir d'autres valeurs!
+		socket.on('askReload', poll);
+		
+		// MESSAGE du CLIENT vers le SERVEUR 
+        //quand on click sur bouton Reload
+		$('#balerte').click(poll);
+        
+	// quand on click sur bouton bgg
+		$('#bgg').click(function () {
+			socket.emit("message_to_server", { sFLAG : 1 });
+		})
+        // quand on click sur bouton bgd
+		$('#bgd').click(function () {
+			socket.emit("message_to_server", { sFLAG : 2 });
+		})
+        // quand on click sur bouton bdg
+		$('#bdg').click(function () {
+			socket.emit("message_to_server", { sFLAG : 3 });
+		})
+        // quand on click sur bouton bdd
+		$('#bdd').click(function () {
+			socket.emit("message_to_server", { sFLAG : 4 });
+		})
+  	</script> 
+</body>
+</html>
